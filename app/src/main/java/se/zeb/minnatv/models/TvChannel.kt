@@ -9,15 +9,15 @@ package se.zeb.minnatv.models
  */
 enum class TvChannel(val remoteName: String, val displayName: String) {
     TV3("hd.tv3.se", "TV3"),
-    MTV("", "MTV"),
-    TV6("", "TV6"),
-    TV4("", "TV4"),
-    UNKNOWN("", "Unknown");
+    MTV("dance.mtv.se", "MTV"),
+    TV6("hd.tv6.se", "TV6"),
+    TV4("tv4.se", "TV4"),
+    KANAL9("hd.kanal9.se", "Kanal 9"),
+    TNT("tnt-tv.se", "TNT");
 
     companion object {
         fun fromRemote(remoteName: String): TvChannel {
-            return values().firstOrNull { it.remoteName == remoteName }
-                    ?: UNKNOWN
+            return values().first { it.remoteName == remoteName }
         }
     }
 }

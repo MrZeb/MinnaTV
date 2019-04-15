@@ -47,13 +47,15 @@ class TvScheduleViewModel : ViewModel(), LifecycleObserver {
 
                             if (tvSchedulesResponse?.jsontv?.programme != null) {
                                 for (programme: ProgrammeItem? in tvSchedulesResponse.jsontv.programme) {
+
+                                    Log.d("hello?", programme?.title?.sv + " " + FavoriteShowType.BORDER_CONTROL_CANADA)
                                     FavoriteShowType.values()
                                             .filter { programme?.title?.sv.equals(it.title, true) }
                                             .filter { Date().before(programme?.stop?.toLong()?.let { getDate(it) }) }
                                             .forEach {
                                                 if (programme != null) {
                                                     if (programme.title?.sv != null && programme.channel != null && programme.start != null && programme.stop != null) {
-                                                        Log.d("TV programme", "Fav: " + programme?.title?.sv + " start: " + getDate(programme.start.toLong()) + " stop: " + getDate(programme.stop.toLong()))
+                                                        Log.d("TV programme", "Fav: " + programme.title.sv + " start: " + getDate(programme.start.toLong()) + " stop: " + getDate(programme.stop.toLong()))
                                                         favoriteShowModels.add(FavoriteShow(programme.title.sv, getTvChannel(programme.channel), getDate(programme.start.toLong()), getDate(programme.stop.toLong())))
                                                     }
                                                 }
@@ -63,6 +65,10 @@ class TvScheduleViewModel : ViewModel(), LifecycleObserver {
 
                             cacheShows.addAll(favoriteShowModels)
                             nbrResponses += 1
+
+
+                            Log.d("responze", nbrResponses.toString())
+
 
                             Log.d("responze", nbrResponses.toString())
 
@@ -88,7 +94,7 @@ class TvScheduleViewModel : ViewModel(), LifecycleObserver {
     }
 
     fun getDate(dateMs: Long): Date {
-        return dateMs?.let { Date(TimeUnit.SECONDS.toMillis(it)) }
+        return dateMs.let { Date(TimeUnit.SECONDS.toMillis(it)) }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)

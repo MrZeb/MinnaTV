@@ -3,12 +3,14 @@ package se.zeb.minnatv
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import se.zeb.minnatv.models.TvChannel
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * Forza Football
@@ -24,7 +26,9 @@ class TvScheduleApi {
 
     init {
         val okHttpClientBuilder = OkHttpClient().newBuilder()
-
+        val logging = HttpLoggingInterceptor()
+        logging.level = HttpLoggingInterceptor.Level.BASIC
+        okHttpClientBuilder.addInterceptor(logging)
         val client = okHttpClientBuilder.build()
 
         val retrofit = Retrofit.Builder()
@@ -39,11 +43,14 @@ class TvScheduleApi {
     }
 
 
-    fun getSchedulesToday(channel : TvChannel): Call<TvScheduleResponse> {
+    fun getSchedulesToday(channel: TvChannel): Call<TvScheduleResponse> {
         val today = Date()
-        var dateString = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(today)
+        val calendar = Calendar.getInstance()
+        calendar.time = today
 
-        return service.getTv3Schedules(channel.remoteName, dateString)
+        var dateString = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.time)
+
+        return service.getSchedules(channel.remoteName, dateString)
     }
 
     fun getBaseUrl(): String {
