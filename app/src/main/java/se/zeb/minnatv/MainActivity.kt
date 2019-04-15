@@ -47,22 +47,28 @@ class MainActivity : FragmentActivity(), Observer<List<FavoriteShow>> {
     override fun onChanged(tvSchedules: List<FavoriteShow>?) {
         Log.d("TV", tvSchedules?.toString())
 
-        if (tvSchedules == null || tvSchedules.isEmpty()) {
-            return
-        }
-
-        currentTvShows = tvSchedules
-
-        show(currentTvShows[currentShowIndex])
-
-        if (currentTvShows.size > 1) {
+        if (tvSchedules != null && tvSchedules.size > 1) {
             next_button.visibility = View.VISIBLE
         } else {
             next_button.visibility = View.GONE
         }
+
+        if (tvSchedules == null || tvSchedules.isEmpty()) {
+
+            show_title.text = "Inget att kolla för Minna :(\nSorry babe!"
+            sexy_seb.visibility = View.VISIBLE
+
+            return
+        }
+
+        sexy_seb.visibility = View.GONE
+
+        currentTvShows = tvSchedules
+
+        show(currentTvShows[currentShowIndex])
     }
 
     private fun show(show: FavoriteShow) {
-        show_title.text = "%s p\u00E5 %s kl %s".format(show.title, show.channel, SimpleDateFormat("HH:mm", Locale.GERMANY).format(show.start))
+        show_title.text = "%s p\u00E5 %s kl %s".format(show.title, show.channel.displayName, SimpleDateFormat("HH:mm", Locale.GERMANY).format(show.start))
     }
 }

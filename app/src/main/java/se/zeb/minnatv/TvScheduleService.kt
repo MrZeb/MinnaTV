@@ -15,6 +15,6 @@ import retrofit2.http.Path
 
 interface TvScheduleService {
     @GET("/{channel}_{date}.js.gz")
-    fun getTv3Schedules(@Path("channel") channel: String, @Path("date") date: String)
+    fun getSchedules(@Path("channel") channel: String, @Path("date") date: String)
             : Call<TvScheduleResponse>
 }
