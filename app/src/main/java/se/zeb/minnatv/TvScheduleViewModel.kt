@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import se.zeb.minnatv.api.TvScheduleApi
 import se.zeb.minnatv.models.FavoriteShow
 import se.zeb.minnatv.models.FavoriteShowType
 import se.zeb.minnatv.models.TvChannel
@@ -37,38 +38,14 @@ class TvScheduleViewModel : ViewModel(), LifecycleObserver {
         tvSchedules = MutableLiveData()
 
         TvChannel.values()
-                .map { Log.d("call", it.toString()) ; TvScheduleApi().getSchedulesToday(it) }
+                .map { Log.d("call", it.toString()); TvScheduleApi().getSchedulesToday(it) }
                 .forEach { callAsync ->
                     callAsync.enqueue(object : Callback<TvScheduleResponse> {
                         override fun onResponse(call: Call<TvScheduleResponse>, response: Response<TvScheduleResponse>) {
-                            val tvSchedulesResponse = response.body()
 
-                            val favoriteShowModels = ArrayList<FavoriteShow>()
+                            cacheShows.addAll(filterShows(response.body()))
 
-                            if (tvSchedulesResponse?.jsontv?.programme != null) {
-                                for (programme: ProgrammeItem? in tvSchedulesResponse.jsontv.programme) {
-
-                                    Log.d("hello?", programme?.title?.sv + " " + FavoriteShowType.BORDER_CONTROL_CANADA)
-                                    FavoriteShowType.values()
-                                            .filter { programme?.title?.sv.equals(it.title, true) }
-                                            .filter { Date().before(programme?.stop?.toLong()?.let { getDate(it) }) }
-                                            .forEach {
-                                                if (programme != null) {
-                                                    if (programme.title?.sv != null && programme.channel != null && programme.start != null && programme.stop != null) {
-                                                        Log.d("TV programme", "Fav: " + programme.title.sv + " start: " + getDate(programme.start.toLong()) + " stop: " + getDate(programme.stop.toLong()))
-                                                        favoriteShowModels.add(FavoriteShow(programme.title.sv, getTvChannel(programme.channel), getDate(programme.start.toLong()), getDate(programme.stop.toLong())))
-                                                    }
-                                                }
-                                            }
-                                }
-                            }
-
-                            cacheShows.addAll(favoriteShowModels)
                             nbrResponses += 1
-
-
-                            Log.d("responze", nbrResponses.toString())
-
 
                             Log.d("responze", nbrResponses.toString())
 
@@ -89,12 +66,40 @@ class TvScheduleViewModel : ViewModel(), LifecycleObserver {
 
     }
 
-    private fun getTvChannel(channel: String): TvChannel {
+    private fun filterShows(tvSchedulesResponse: TvScheduleResponse?): Collection<FavoriteShow> {
+        val favoriteShowModels = ArrayList<FavoriteShow>()
+        if (tvSchedulesResponse?.jsontv?.programme != null) {
+            for (programme: ProgrammeItem? in tvSchedulesResponse.jsontv.programme) {
+                val programmeId = programme?.episodeNum?.themoviedbOrg?.split("/")?.get(1)?.toLong()
+                repeat(FavoriteShowType.values()
+                        .filter { programme?.channel != null }
+                        .filter { programmeId == it.id }
+                        .filter { Date().before(programme?.stop?.toLong()?.let { getDate(it) }) }.size) {
+
+                    if (programme == null) {
+                        return favoriteShowModels
+                    }
+
+                    val tvChannel = getTvChannel(programme.channel)
+                    if (tvChannel != null) {
+                        if (programme.title?.sv != null && programme.channel != null && programme.start != null && programme.stop != null) {
+                            Log.d("TV programme", "Fav: " + programme.title.sv + " start: " + getDate(programme.start.toLong()) + " stop: " + getDate(programme.stop.toLong()))
+                            favoriteShowModels.add(FavoriteShow(programme.title.sv, tvChannel, getDate(programme.start.toLong()), getDate(programme.stop.toLong())))
+                        }
+                    }
+                }
+            }
+        }
+
+        return favoriteShowModels
+    }
+
+    private fun getTvChannel(channel: String?): TvChannel? {
         return TvChannel.fromRemote(channel)
     }
 
-    fun getDate(dateMs: Long): Date {
-        return dateMs.let { Date(TimeUnit.SECONDS.toMillis(it)) }
+    private fun getDate(dateMs: Long): Date {
+        return Date(TimeUnit.SECONDS.toMillis(dateMs))
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)

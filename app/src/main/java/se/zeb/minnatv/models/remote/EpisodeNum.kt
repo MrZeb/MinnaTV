@@ -6,6 +6,6 @@ import com.google.gson.annotations.SerializedName
 @Generated("com.robohorse.robopojogenerator")
 data class EpisodeNum(
 
-	@field:SerializedName("themoviedb.org")
+	@field:SerializedName("themoviedb.com")
 	val themoviedbOrg: String? = null
 )
